@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Whac-A-Mole</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --dark: #292F36;
+            --light: #F7FFF7;
+            --accent: #FFE66D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #292F36 0%, #1A1E23 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 900;
+            font-size: 3.5rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(78,205,196,0.1) 0%, rgba(255,107,107,0.05) 50%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+        
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: 'Poppins', sans-serif;
+            color: var(--accent);
+        }
+        
+        #score {
+            color: var(--primary);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hole {
+            aspect-ratio: 1/1;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%231A1E23"/><circle cx="50" cy="50" r="40" fill="%23292F36"/></svg>') center/contain no-repeat;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .hole:hover {
+            transform: scale(1.05);
+        }
+        
+        .mole {
+            width: 80%;
+            height: 80%;
+            position: absolute;
+            bottom: -30%;
+            left: 10%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        
+        .mole.up {
+            bottom: 20%;
+        }
+        
+        .mole.whacked {
+            animation: whack 0.3s forwards;
+        }
+        
+        @keyframes whack {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.8) rotate(-10deg); }
+            100% { transform: scale(1); }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), #FF8E8E);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--light);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .difficulty-btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.1);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn.active {
+            background: var(--secondary);
+            color: var(--dark);
+            font-weight: bold;
+        }
+        
+        .combo-meter {
+            height: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            margin-top: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .combo-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #FFB347);
+            transition: width 0.3s;
+        }
+        
+        .combo-text {
+            position: absolute;
+            right: 0;
+            top: -1.5rem;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .combo-text.show {
+            opacity: 1;
+        }
+        
+        .power-ups {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .power-up {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            font-size: 1.2rem;
+        }
+        
+        .power-up:hover {
+            transform: scale(1.1);
+        }
+        
+        .power-up::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .power-up[data-count="0"] {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .power-up[data-count="0"]::after {
+            display: none;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            opacity: 0;
+            z-index: 10;
+            animation: confetti 3s ease-in-out forwards;
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .game-board {
+                gap: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ULTIMATE WHAC-A-MOLE</h1>
+    <p class="subtitle">Test your reflexes and score big!</p>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-box">
+                    <div class="info-label">SCORE</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">TIME</div>
+                    <div class="info-value" id="time">30</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">COMBO</div>
+                    <div class="info-value" id="combo">1x</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
+            <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <div class="combo-meter">
+            <div class="combo-fill" id="comboFill"></div>
+            <div class="combo-text" id="comboText">Keep going!</div>
+        </div>
+        
+        <div class="power-ups">
+            <div class="power-up" id="doublePoints" data-count="3" title="Double Points (3 uses)">
+                <span>2x</span>
+            </div>
+            <div class="power-up" id="timeFreeze" data-count="2" title="Freeze Time (2 uses)">
+                <span>⏱️</span>
+            </div>
+            <div class="power-up" id="moleRain" data-count="1" title="Mole Rain (1 use)">
+                <span>🌧️</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">START GAME</button>
+            <button class="btn btn-secondary" id="stopBtn" disabled>END GAME</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameBoard = document.getElementById('gameBoard');
+            const scoreDisplay = document.getElementById('score');
+            const timeDisplay = document.getElementById('time');
+            const comboDisplay = document.getElementById('combo');
+            const comboFill = document.getElementById('comboFill');
+            const comboText = document.getElementById('comboText');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            
+            // Power-ups
+            const doublePointsBtn = document.getElementById('doublePoints');
+            const timeFreezeBtn = document.getElementById('timeFreeze');
+            const moleRainBtn = document.getElementById('moleRain');
+            
+            // Game variables
+            let score = 0;
+            let timeLeft = 30;
+            let timer;
+            let gameInterval;
+            let holes = [];
+            let lastHole = null;
+            let difficulty = 'easy';
+            let moleSpeed = 1000;
+            let gameActive = false;
+            let combo = 1;
+            let comboTimeout;
+            let lastWhackTime = 0;
+            
+            // Power-up counts
+            let doublePointsCount = 3;
+            let timeFreezeCount = 2;
+            let moleRainCount = 1;
+            
+            // Mole emojis
+            const moleEmojis = ['🦫', '🐹', '🐭', '🐀', '🐿️', '🦔'];
+            
+            // Create holes and moles
+            function createGameBoard() {
+                gameBoard.innerHTML = '';
+                holes = [];
+                
+                for (let i = 0; i < 9; i++) {
+                    const hole = document.createElement('div');
+                    hole.className = 'hole';
+                    const mole = document.createElement('div');
+                    mole.className = 'mole';
+                    mole.textContent = moleEmojis[Math.floor(Math.random() * moleEmojis.length)];
+                    hole.appendChild(mole);
+                    hole.addEventListener('click', whackMole);
+                    gameBoard.appendChild(hole);
+                    holes.push({
+                        element: hole,
+                        mole: mole,
+                        active: false
+                    });
+                }
+            }
+            
+            // Initialize game board
+            createGameBoard();
+            
+            // Set difficulty
+            function setDifficulty(level) {
+                difficulty = level;
+                difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                switch(level) {
+                    case 'easy':
+                        moleSpeed = 1200;
+                        break;
+                    case 'medium':
+                        moleSpeed = 800;
+                        break;
+                    case 'hard':
+                        moleSpeed = 500;
+                        break;
+                }
+            }
+            
+            // Random hole selection
+            function randomHole() {
+                const availableHoles = holes.filter(hole => !hole.active);
+                if (availableHoles.length === 0) return null;
+                
+                const index = Math.floor(Math.random() * availableHoles.length);
+                const hole = availableHoles[index];
+                
+                // Less likely to repeat the same hole on higher difficulties
+                if (difficulty === 'hard' && hole === lastHole && availableHoles.length > 1) {
+                    return randomHole();
+                }
+                
+                lastHole = hole;
+                return hole;
+            }
+            
+            // Mole appears
+            function popUpMole() {
+                if (!gameActive) return;
+                
+                const hole = randomHole();
+                if (!hole) return;
+                
+                // Change mole emoji randomly
+                hole.mole.textContent = moleEmojis[Math.floor(Math.random() * moleEmojis.length)];
+                
+                hole.active = true;
+                hole.mole.classList.add('up');
+                
+                setTimeout(() => {
+                    if (hole.active) {
+                        hole.mole.classList.remove('up');
+                        hole.active = false;
+                    }
+                    
+                    if (gameActive) {
+                        popUpMole();
+                    }
+                }, moleSpeed);
+            }
+            
+            // Whack a mole
+            function whackMole(e) {
+                const hole = holes.find(h => h.element === e.currentTarget);
+                if (!hole.active) return;
+                
+                // Combo system
+                const now = Date.now();
+                if (now - lastWhackTime < 1000) { // 1 second to maintain combo
+                    combo++;
+                    updateCombo();
+                } else {
+                    combo = 1;
+                    updateCombo();
+                }
+                lastWhackTime = now;
+                
+                // Score points
+                const pointsEarned = combo * (difficulty === 'hard' ? 3 : difficulty === 'medium' ? 2 : 1);
+                score += pointsEarned;
+                scoreDisplay.textContent = score;
+                
+                // Visual feedback
+                hole.mole.classList.add('whacked');
+                hole.active = false;
+                setTimeout(() => {
+                    hole.mole.classList.remove('up');
+                    hole.mole.classList.remove('whacked');
+                }, 300);
+                
+                // Create floating points text
+                createPointsText(e.currentTarget, pointsEarned);
+            }
+            
+            // Combo system
+            function updateCombo() {
+                comboDisplay.textContent = `${combo}x`;
+                
+                // Combo meter
+                const comboDuration = 1000; // 1 second to maintain combo
+                const elapsed = Date.now() - lastWhackTime;
+                const remaining = Math.max(0, comboDuration - elapsed);
+                
+                comboFill.style.width = `${(remaining / comboDuration) * 100}%`;
+                
+                if (combo > 1) {
+                    comboText.classList.add('show');
+                    comboText.textContent = combo >= 5 ? `COMBO ${combo}x!` : 'Keep going!';
+                } else {
+                    comboText.classList.remove('show');
+                }
+                
+                clearTimeout(comboTimeout);
+                comboTimeout = setTimeout(() => {
+                    if (Date.now() - lastWhackTime >= comboDuration) {
+                        combo = 1;
+                        comboDisplay.textContent = '1x';
+                        comboFill.style.width = '0%';
+                        comboText.classList.remove('show');
+                    }
+                }, remaining);
+            }
+            
+            // Create floating points text
+            function createPointsText(element, points) {
+                const pointsText = document.createElement('div');
+                pointsText.textContent = `+${points}`;
+                pointsText.style.position = 'absolute';
+                pointsText.style.color = '#FFE66D';
+                pointsText.style.fontWeight = 'bold';
+                pointsText.style.fontSize = '1.5rem';
+                pointsText.style.pointerEvents = 'none';
+                pointsText.style.animation = 'floatUp 1s forwards';
+                
+                const rect = element.getBoundingClientRect();
+                pointsText.style.left = `${rect.left + rect.width / 2}px`;
+                pointsText.style.top = `${rect.top}px`;
+                pointsText.style.transform = 'translate(-50%, -50%)';
+                
+                document.body.appendChild(pointsText);
+                
+                setTimeout(() => {
+                    pointsText.remove();
+                }, 1000);
+            }
+            
+            // Create confetti
+            function createConfetti() {
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.backgroundColor = getRandomColor();
+                    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }
+            }
+            
+            function getRandomColor() {
+                const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF8E8E', '#6BFFB8'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            // Power-ups
+            doublePointsBtn.addEventListener('click', () => {
+                if (doublePointsCount <= 0 || !gameActive) return;
+                
+                doublePointsCount--;
+                doublePointsBtn.setAttribute('data-count', doublePointsCount);
+                
+                // Double points for 5 seconds
+                const originalCombo = combo;
+                combo = combo * 2;
+                updateCombo();
+                
+                setTimeout(() => {
+                    combo = originalCombo;
+                    updateCombo();
+                }, 5000);
+                
+                // Visual feedback
+                doublePointsBtn.style.transform = 'scale(1.3)';
+                doublePointsBtn.style.boxShadow = '0 0 15px #FFE66D';
+                setTimeout(() => {
+                    doublePointsBtn.style.transform = '';
+                    doublePointsBtn.style.boxShadow = '';
+                }, 300);
+            });
+            
+            timeFreezeBtn.addEventListener('click', () => {
+                if (timeFreezeCount <= 0 || !gameActive) return;
+                
+                timeFreezeCount--;
+                timeFreezeBtn.setAttribute('data-count', timeFreezeCount);
+                
+                // Freeze time for 3 seconds
+                const originalTimeLeft = timeLeft;
+                clearInterval(timer);
+                
+                setTimeout(() => {
+                    timer = setInterval(updateTimer, 1000);
+                }, 3000);
+                
+                // Visual feedback
+                timeFreezeBtn.style.transform = 'scale(1.3)';
+                timeFreezeBtn.style.boxShadow = '0 0 15px #4ECDC4';
+                setTimeout(() => {
+                    timeFreezeBtn.style.transform = '';
+                    timeFreezeBtn.style.boxShadow = '';
+                }, 300);
+            });
+            
+            moleRainBtn.addEventListener('click', () => {
+                if (moleRainCount <= 0 || !gameActive) return;
+                
+                moleRainCount--;
+                moleRainBtn.setAttribute('data-count', moleRainCount);
+                
+                // Make all moles appear for 2 seconds
+                holes.forEach(hole => {
+                    if (!hole.active) {
+                        // Change mole emoji randomly
+                        hole.mole.textContent = moleEmojis[Math.floor(Math.random() * moleEmojis.length)];
+                        hole.active = true;
+                        hole.mole.classList.add('up');
+                        
+                        setTimeout(() => {
+                            hole.mole.classList.remove('up');
+                            hole.active = false;
+                        }, 2000);
+                    }
+                });
+                
+                // Visual feedback
+                moleRainBtn.style.transform = 'scale(1.3)';
+                moleRainBtn.style.boxShadow = '0 0 15px #FF6B6B';
+                setTimeout(() => {
+                    moleRainBtn.style.transform = '';
+                    moleRainBtn.style.boxShadow = '';
+                }, 300);
+            });
+            
+            // Timer update
+            function updateTimer() {
+                timeLeft--;
+                timeDisplay.textContent = timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timeDisplay.style.color = '#FF6B6B';
+                    timeDisplay.style.animation = 'pulse 0.5s infinite';
+                }
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }
+            
+            // Start game
+            function startGame() {
+                score = 0;
+                timeLeft = 30;
+                combo = 1;
+                
+                scoreDisplay.textContent = score;
+                timeDisplay.textContent = timeLeft;
+                comboDisplay.textContent = '1x';
+                timeDisplay.style.color = '';
+                timeDisplay.style.animation = '';
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                gameActive = true;
+                
+                // Reset power-ups
+                doublePointsCount = 3;
+                timeFreezeCount = 2;
+                moleRainCount = 1;
+                doublePointsBtn.setAttribute('data-count', doublePointsCount);
+                timeFreezeBtn.setAttribute('data-count', timeFreezeCount);
+                moleRainBtn.setAttribute('data-count', moleRainCount);
+                
+                // Start timer
+                timer = setInterval(updateTimer, 1000);
+                
+                // Start mole popping
+                popUpMole();
+            }
+            
+            // End game
+            function endGame() {
+                clearInterval(timer);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                gameActive = false;
+                
+                // Remove any remaining moles
+                holes.forEach(hole => {
+                    hole.mole.classList.remove('up');
+                    hole.active = false;
+                });
+                
+                // Show game over with style
+                setTimeout(() => {
+                    if (score >= 100) {
+                        createConfetti();
+                        alert(`🎉 AMAZING! Your score: ${score} 🎉`);
+                    } else if (score >= 50) {
+                        alert(`👍 Great job! Your score: ${score}`);
+                    } else {
+                        alert(`Game over! Your score: ${score}`);
+                    }
+                }, 500);
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startGame);
+            stopBtn.addEventListener('click', endGame);
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => setDifficulty(e.target.dataset.difficulty));
+            });
+            
+            // Add CSS for floating points animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes floatUp {
+                    0% { transform: translate(-50%, -50%); opacity: 1; }
+                    100% { transform: translate(-50%, -150%); opacity: 0; }
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

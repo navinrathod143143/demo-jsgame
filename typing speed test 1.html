@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Typing Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --dark: #292F36;
+            --light: #F7FFF7;
+            --accent: #FFE66D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #292F36 0%, #1A1E23 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 900;
+            font-size: 3rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .settings {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .difficulty-selector, .time-settings {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .difficulty-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.1);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn.active {
+            background: var(--secondary);
+            color: var(--dark);
+            font-weight: bold;
+        }
+        
+        #time-input {
+            width: 60px;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            color: white;
+            text-align: center;
+        }
+        
+        .text-display {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            min-height: 150px;
+            position: relative;
+        }
+        
+        #text-to-type {
+            opacity: 0.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Roboto', monospace;
+            letter-spacing: 0.5px;
+        }
+        
+        #typed-text {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            right: 1.5rem;
+            pointer-events: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Roboto', monospace;
+            letter-spacing: 0.5px;
+        }
+        
+        .correct {
+            color: var(--secondary);
+        }
+        
+        .incorrect {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .current {
+            background: rgba(255,255,255,0.2);
+            position: relative;
+        }
+        
+        .current::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        #typing-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-family: 'Roboto', monospace;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), #FF8E8E);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--light);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        #wpm {
+            color: var(--primary);
+        }
+        
+        #accuracy {
+            color: var(--secondary);
+        }
+        
+        #time-left {
+            color: var(--accent);
+        }
+        
+        @media (max-width: 600px) {
+            .settings {
+                flex-direction: column;
+            }
+            
+            .difficulty-selector, .time-settings {
+                justify-content: center;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ULTIMATE TYPING MASTER</h1>
+    
+    <div class="game-container">
+        <div class="settings">
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
+                <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+                <button class="difficulty-btn" data-difficulty="extreme">Extreme</button>
+            </div>
+            <div class="time-settings">
+                <span>Time (sec):</span>
+                <input type="number" id="time-input" min="10" max="300" value="60">
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div>WPM</div>
+                <div class="stat-value" id="wpm">0</div>
+            </div>
+            <div class="stat">
+                <div>Accuracy</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+            <div class="stat">
+                <div>Time Left</div>
+                <div class="stat-value" id="time-left">60</div>
+            </div>
+        </div>
+        
+        <div class="text-display">
+            <div id="text-to-type"></div>
+            <div id="typed-text"></div>
+        </div>
+        
+        <input type="text" id="typing-input" placeholder="Start typing here..." disabled>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">Start</button>
+            <button class="btn btn-secondary" id="pauseBtn" disabled>Pause</button>
+            <button class="btn btn-secondary" id="stopBtn" disabled>Stop</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elements
+            const textToType = document.getElementById('text-to-type');
+            const typedText = document.getElementById('typed-text');
+            const typingInput = document.getElementById('typing-input');
+            const wpmDisplay = document.getElementById('wpm');
+            const accuracyDisplay = document.getElementById('accuracy');
+            const timeDisplay = document.getElementById('time-left');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const timeInput = document.getElementById('time-input');
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            
+            // Game variables
+            let timer;
+            let timeLeft = 60;
+            let gameActive = false;
+            let gamePaused = false;
+            let difficulty = 'easy';
+            let currentText = '';
+            let typedChars = '';
+            let correctChars = 0;
+            let startTime;
+            let lastUpdateTime;
+            let wpm = 0;
+            let accuracy = 100;
+            
+            // Sample texts for different difficulties
+            const sampleTexts = {
+                easy: [
+                    "The quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet.",
+                    "Learning to type quickly and accurately is an essential skill in today's digital world. Practice makes perfect.",
+                    "Typing is the process of writing or inputting text by pressing keys on a typewriter, computer keyboard, or touchscreen."
+                ],
+                medium: [
+                    "The ability to type without looking at the keyboard is called touch typing. The home row is the base position for fingers.",
+                    "Keyboarding skills are vital for many jobs today. Employers often look for candidates who can type at least 50 words per minute.",
+                    "Ergonomics is important when typing for long periods. Keep your wrists straight, elbows at 90 degrees, and feet flat on the floor."
+                ],
+                hard: [
+                    "The QWERTY keyboard layout was designed in the 1870s for mechanical typewriters to prevent jamming by separating commonly used letter pairs.",
+                    "According to a study by the University of Cambridge, the average typing speed is around 40 words per minute, while professional typists can exceed 75 WPM.",
+                    "The world record for typing speed is held by Barbara Blackburn, who maintained 150 WPM for 50 minutes and reached a peak speed of 212 WPM on a Dvorak simplified keyboard."
+                ],
+                extreme: [
+                    "Pneumonoultramicroscopicsilicovolcanoconiosis, a lung disease caused by inhaling very fine silicate or quartz dust, is often considered the longest word in English. Typing such complex words challenges even the most proficient typists.",
+                    "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump! Sphinx of black quartz, judge my vow. These pangrams contain every letter of the alphabet and are used to test typing skills.",
+                    "The human brain can process images seen for just 13 milliseconds. This incredible speed demonstrates why touch typists can achieve such high speeds - their fingers move automatically while their brain focuses on the content rather than individual keys."
+                ]
+            };
+            
+            // Initialize game
+            function initGame() {
+                // Get selected time
+                timeLeft = parseInt(timeInput.value) || 60;
+                if (timeLeft < 10) timeLeft = 10;
+                if (timeLeft > 300) timeLeft = 300;
+                timeDisplay.textContent = timeLeft;
+                
+                // Select random text based on difficulty
+                const texts = sampleTexts[difficulty];
+                currentText = texts[Math.floor(Math.random() * texts.length)];
+                textToType.textContent = currentText;
+                typedText.textContent = '';
+                typedChars = '';
+                correctChars = 0;
+                wpm = 0;
+                accuracy = 100;
+                
+                // Update displays
+                wpmDisplay.textContent = '0';
+                accuracyDisplay.textContent = '100%';
+                
+                // Clear input
+                typingInput.value = '';
+                typingInput.disabled = false;
+                typingInput.focus();
+                
+                // Start timer
+                startTime = Date.now();
+                lastUpdateTime = startTime;
+                timer = setInterval(updateGame, 100);
+                gameActive = true;
+                gamePaused = false;
+                
+                // Update buttons
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                stopBtn.disabled = false;
+                pauseBtn.textContent = 'Pause';
+            }
+            
+            // Update game state
+            function updateGame() {
+                if (gamePaused) return;
+                
+                const currentTime = Date.now();
+                
+                // Update WPM every 500ms
+                if (currentTime - lastUpdateTime >= 500) {
+                    updateWPM();
+                    lastUpdateTime = currentTime;
+                }
+                
+                // Update timer every second
+                if (currentTime - startTime >= 1000) {
+                    timeLeft--;
+                    timeDisplay.textContent = timeLeft;
+                    startTime = currentTime;
+                    
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }
+            }
+            
+            // Calculate and update WPM
+            function updateWPM() {
+                const timeInMinutes = (parseInt(timeInput.value) - timeLeft) / 60 || 1/60;
+                const words = correctChars / 5; // Standard word is 5 characters
+                wpm = Math.round(words / timeInMinutes);
+                wpmDisplay.textContent = wpm;
+                
+                // Update accuracy
+                accuracy = typedChars.length > 0 ? Math.round((correctChars / typedChars.length) * 100) : 100;
+                accuracyDisplay.textContent = `${accuracy}%`;
+            }
+            
+            // Handle typing input
+            typingInput.addEventListener('input', (e) => {
+                if (gamePaused || !gameActive) return;
+                
+                const inputText = e.target.value;
+                const currentChar = inputText[inputText.length - 1];
+                
+                // Check if backspace was pressed
+                if (inputText.length < typedChars.length) {
+                    typedChars = typedChars.slice(0, inputText.length);
+                    updateTypedText();
+                    return;
+                }
+                
+                // Add new character to typed text
+                if (currentChar) {
+                    typedChars += currentChar;
+                    
+                    // Check if character is correct
+                    if (currentChar === currentText[typedChars.length - 1]) {
+                        correctChars++;
+                    }
+                    
+                    updateTypedText();
+                    
+                    // Check if all text has been typed
+                    if (typedChars.length === currentText.length) {
+                        endGame();
+                    }
+                }
+            });
+            
+            // Update the displayed typed text with perfect overlap
+            function updateTypedText() {
+                let html = '';
+                
+                for (let i = 0; i < typedChars.length; i++) {
+                    if (typedChars[i] === currentText[i]) {
+                        html += `<span class="correct">${typedChars[i]}</span>`;
+                    } else {
+                        html += `<span class="incorrect">${typedChars[i]}</span>`;
+                    }
+                }
+                
+                // Add current character marker
+                if (typedChars.length < currentText.length) {
+                    const nextChar = currentText[typedChars.length];
+                    html += `<span class="current">${nextChar}</span>`;
+                }
+                
+                typedText.innerHTML = html;
+            }
+            
+            // Set difficulty
+            function setDifficulty(level) {
+                difficulty = level;
+                difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+            
+            // Start game
+            function startGame() {
+                initGame();
+            }
+            
+            // Pause/resume game
+            function togglePause() {
+                gamePaused = !gamePaused;
+                pauseBtn.textContent = gamePaused ? 'Resume' : 'Pause';
+                typingInput.disabled = gamePaused;
+                
+                if (!gamePaused) {
+                    startTime = Date.now() - (parseInt(timeInput.value) - timeLeft) * 1000;
+                    lastUpdateTime = Date.now();
+                    typingInput.focus();
+                }
+            }
+            
+            // End game
+            function endGame() {
+                clearInterval(timer);
+                gameActive = false;
+                typingInput.disabled = true;
+                
+                // Update buttons
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                stopBtn.disabled = true;
+                
+                // Final calculations
+                updateWPM();
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startGame);
+            pauseBtn.addEventListener('click', togglePause);
+            stopBtn.addEventListener('click', endGame);
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => setDifficulty(e.target.dataset.difficulty));
+            });
+            
+            // Validate time input
+            timeInput.addEventListener('change', () => {
+                let value = parseInt(timeInput.value);
+                if (isNaN(value)) value = 60;
+                if (value < 10) value = 10;
+                if (value > 300) value = 300;
+                timeInput.value = value;
+            });
+        });
+    </script>
+</body>
+</html>
